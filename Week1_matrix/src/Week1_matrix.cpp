@@ -11,111 +11,91 @@ class Matrix {
 public:
 	Matrix(){
 		matrix = {};
+		num_rows_ = num_cols_ = 0;
 	}
 	Matrix(int num_rows, int num_cols) {
 		Reset(num_rows, num_cols);
 	}
 	void Reset(int num_rows, int num_cols) {
 		if (num_rows < 0 || num_cols < 0) {
-			throw out_of_range("");
+			throw out_of_range("out_of_range");
 		}
-		vector<vector<int>> temp(num_rows, vector<int>(num_cols));
-		matrix = temp;
+		num_rows_ = num_rows;
+		num_cols_ = num_cols;
+		matrix.assign(num_rows_, vector<int>(num_cols_));
 	}
 	int At(int row, int col) const {
-		if (row > GetNumRows() - 1 || row < 0 ||
-			col > GetNumColumns() - 1 || col < 0) {
-			throw out_of_range("");
-		}
-		return matrix[row][col];
+		return matrix.at(row).at(col);
 	}
 	int& At(int row, int col) {
-		if (row > GetNumRows() - 1 || row < 0 ||
-			col > GetNumColumns() - 1 || col < 0) {
-			throw out_of_range("");
-		}
 		return matrix[row][col];
 	}
 	int GetNumRows() const {
-		return matrix.size();
+		return num_rows_;
 	}
 	int GetNumColumns() const {
-		if (matrix.size() == 0) { //если число строк = 0 (таблица пустая), то и число столбцов = 0
-			return 0;
-		} else {
-			return matrix[0].size();
-		}
+		return num_cols_;
 	}
-	void SetVal(int row, int col, int new_value) {
-		if (row > GetNumRows() - 1 || row < 0 ||
-			col > GetNumColumns() - 1 || col < 0) {
-			throw out_of_range("");
-		}
-		if (row < matrix.size() && col < matrix[0].size()) {
-			matrix[row][col] = new_value;
-		} else {
-			throw out_of_range("");
-		}
+	bool isEmpty() const {
+		return num_rows_ == 0 || num_cols_ == 0;
 	}
 private:
 	vector<vector<int>> matrix;
+	int num_rows_, num_cols_;
 };
 
-istream& operator>>(istream& s, Matrix& m) {
+istream& operator>>(istream& in, Matrix& m) {
 	int rows, cols;
-	s >> rows >> cols;
+	in >> rows >> cols;
 	m.Reset(rows, cols);
 
-	int i, j;
-	for (i = 0; i < rows; ++i) {
-		for (j = 0; j < cols; ++j) {
-			int value;
-			s >> value;
-			m.SetVal(i, j, value);
+	for (int row = 0; row < rows; ++row) {
+		for (int col = 0; col < cols; ++col) {
+			in >> m.At(row, col);
 		}
 	}
-	return s;
+	return in;
 }
 
-ostream& operator<<(ostream& s, const Matrix& m) {
+ostream& operator<<(ostream& out, const Matrix& m) {
 	int rows = m.GetNumRows();
 	int cols = m.GetNumColumns();
-	s << rows << ' ' << cols << endl;
+	out << rows << ' ' << cols << endl;
 
-	int i, j;
-	for (i = 0; i < rows; ++i) {
-		for (j = 0; j < cols; ++j) {
-			s << m.At(i, j) << ' ';
+	for (int row = 0; row < rows; ++row) {
+		for (int col = 0; col < cols; ++col) {
+			out << m.At(row, col) << ' ';
 		}
-		s << endl;
+		out << endl;
 	}
-	return s;
+	return out;
 }
 
 bool operator==(const Matrix& lhs, const Matrix& rhs) {
-	if (lhs.GetNumRows() == 0 && rhs.GetNumRows() == 0 &&
-		lhs.GetNumColumns() == 0 && rhs.GetNumColumns() == 0) {
+	if (lhs.isEmpty() && rhs.isEmpty()) {
 		return true;
 	}
-	if (lhs.GetNumRows() == rhs.GetNumRows() && lhs.GetNumColumns() == rhs.GetNumColumns()) {
-		int i, j;
-		for (i = 0; i < lhs.GetNumRows(); ++i) {
-			for (j = 0; j < lhs.GetNumColumns(); ++j) {
+	if (lhs.GetNumRows() != rhs.GetNumRows() ||
+		lhs.GetNumColumns() != rhs.GetNumColumns()) {
+		return false;
+	} else {
+		for (int i = 0; i < lhs.GetNumRows(); ++i) {
+			for (int j = 0; j < lhs.GetNumColumns(); ++j) {
 				if (lhs.At(i, j) != rhs.At(i, j)) {
 					return false;
 				}
 			}
 		}
 		return true;
-	} else {
-		return false;
 	}
 }
 
 Matrix operator+(const Matrix& lhs, const Matrix& rhs) {
-
+	if (lhs.isEmpty() && rhs.isEmpty()) {
+		return {}; //сумма пустых матриц пустая матрица
+	}
 	if (lhs.GetNumRows() != rhs.GetNumRows() || lhs.GetNumColumns() != rhs.GetNumColumns()) {
-		throw invalid_argument("");
+		throw invalid_argument("invalid_argument");
 	}
 	int rows = lhs.GetNumRows();
 	int cols = lhs.GetNumColumns();
@@ -123,7 +103,7 @@ Matrix operator+(const Matrix& lhs, const Matrix& rhs) {
 	int i, j;
 	for (i = 0; i < rows; ++i) {
 		for (j = 0; j < cols; ++j) {
-			result.SetVal(i, j, lhs.At(i, j) + rhs.At(i, j));
+			result.At(i, j) = lhs.At(i, j) + rhs.At(i, j);
 		}
 	}
 	return result;
@@ -137,3 +117,42 @@ int main() {
   cout << one + two << endl;
   return 0;
 }
+
+/* tests
+2 2
+1 0
+0 1
+2 2
+3 4
+5 6
+
+3 4
+1 2 3 0
+4 5 6 0
+7 8 9 1
+3 4
+-1 -2 -3 0
+-4 -5 -6 0
+-7 -8 -8 -1
+
+4 2
+1 2
+1 2
+1 2
+1 2
+4 2
+-1 -2
+0 0
+-1 -2
+0 0
+
+0 0
+0 0
+
+0 3
+0 3
+
+0 3
+0 5
+
+ */
