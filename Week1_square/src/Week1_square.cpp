@@ -30,7 +30,7 @@ pair<First, Second> Sqr(const pair<First, Second>& p) {
 template <typename T>
 vector<T> Sqr(const vector<T>& v) {
 	vector<T> result;
-	for (auto i : v) {
+	for (const T& i : v) {
 		result.push_back(Sqr(i));
 	}
 	return result;
@@ -39,7 +39,7 @@ vector<T> Sqr(const vector<T>& v) {
 template <typename Key, typename Value>
 map<Key, Value> Sqr(const map<Key, Value>& m) {
 	map<Key, Value> result;
-	for (auto i : m) {
+	for (const auto& i : m) {
 		result[i.first] = Sqr(i.second);
 	}
 	return result;
@@ -59,7 +59,7 @@ int main() {
 	};
 	cout << "map of pairs:" << endl;
 	for (const auto& x : Sqr(map_of_pairs)) {
-	  cout << x.first << ' ' << x.second.first << ' ' << x.second.second << endl;
+		cout << x.first << ' ' << x.second.first << ' ' << x.second.second << endl;
 	}
 
 	return 0;
